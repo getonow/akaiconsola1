@@ -18,6 +18,8 @@ const processes = [
   'Contracts 1'
 ];
 
+const API_URL = "https://akaiconsola1-backend.onrender.com/api/benchmark1";
+
 const ManualProcessRunner: React.FC = () => {
   const [selectedProcess, setSelectedProcess] = useState('');
   const [parameters, setParameters] = useState('');
@@ -26,31 +28,57 @@ const ManualProcessRunner: React.FC = () => {
 
   const handleExecute = async () => {
     if (!selectedProcess) return;
-    
+
     setIsRunning(true);
     setOutput(`Starting ${selectedProcess}...\n`);
-    
-    // Simulate process execution with different outputs based on process type
-    setTimeout(() => {
-      if (selectedProcess.includes('Benchmark')) {
-        setOutput(prev => prev + 'Analyzing benchmark data...\n');
-      } else if (selectedProcess.includes('Market Index')) {
-        setOutput(prev => prev + 'Fetching market index data...\n');
-      } else if (selectedProcess.includes('Contracts')) {
-        setOutput(prev => prev + 'Processing contract data...\n');
+
+    if (selectedProcess === 'Benchmark 1') {
+      // Call the backend API for Benchmark 1
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ part_number: parameters }),
+        });
+        const data = await response.json();
+        if (response.ok && data.status === "found") {
+          setOutput(
+            prev =>
+              prev +
+              "Part found!\n" +
+              JSON.stringify(data.data, null, 2) +
+              "\nProcess completed."
+          );
+        } else {
+          setOutput(prev => prev + "Part not found.\nProcess completed.");
+        }
+      } catch (err: any) {
+        setOutput(prev => prev + "Error: " + err.message + "\nProcess completed.");
       }
-    }, 1000);
-    
-    setTimeout(() => {
-      setOutput(prev => prev + 'Running analysis algorithms...\n');
-    }, 2000);
-    
-    setTimeout(() => {
-      setOutput(prev => prev + `${selectedProcess} analysis complete.\n`);
-      setOutput(prev => prev + 'Results generated successfully.\n');
-      setOutput(prev => prev + 'Process completed.');
       setIsRunning(false);
-    }, 3500);
+    } else {
+      // Simulate process execution for other processes
+      setTimeout(() => {
+        if (selectedProcess.includes('Benchmark')) {
+          setOutput(prev => prev + 'Analyzing benchmark data...\n');
+        } else if (selectedProcess.includes('Market Index')) {
+          setOutput(prev => prev + 'Fetching market index data...\n');
+        } else if (selectedProcess.includes('Contracts')) {
+          setOutput(prev => prev + 'Processing contract data...\n');
+        }
+      }, 1000);
+
+      setTimeout(() => {
+        setOutput(prev => prev + 'Running analysis algorithms...\n');
+      }, 2000);
+
+      setTimeout(() => {
+        setOutput(prev => prev + `${selectedProcess} analysis complete.\n`);
+        setOutput(prev => prev + 'Results generated successfully.\n');
+        setOutput(prev => prev + 'Process completed.');
+        setIsRunning(false);
+      }, 3500);
+    }
   };
 
   return (
@@ -76,20 +104,25 @@ const ManualProcessRunner: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="parameters">Parameters/Prompts</Label>
           <Input
             id="parameters"
-            placeholder="Enter parameters or prompts for the process..."
+            placeholder={
+              selectedProcess === "Benchmark 1"
+                ? "Enter part number..."
+                : "Enter parameters or prompts for the process..."
+            }
             value={parameters}
             onChange={(e) => setParameters(e.target.value)}
+            disabled={!selectedProcess}
           />
         </div>
-        
-        <Button 
-          onClick={handleExecute} 
-          disabled={isRunning || !selectedProcess}
+
+        <Button
+          onClick={handleExecute}
+          disabled={isRunning || !selectedProcess || (selectedProcess === "Benchmark 1" && !parameters)}
           className="bg-blue-600 hover:bg-blue-700"
         >
           {isRunning ? (
@@ -104,7 +137,7 @@ const ManualProcessRunner: React.FC = () => {
             </>
           )}
         </Button>
-        
+
         <div className="space-y-2">
           <Label htmlFor="output">Output</Label>
           <Textarea
