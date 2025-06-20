@@ -18,7 +18,7 @@ const processes = [
   'Contracts 1'
 ];
 
-const API_URL = "https://akaiconsola1-backend.onrender.com/api/benchmark1";
+const API_URL = "https://akaiconsola1-backend.onrender.com/api/procurement-analysis";
 
 const ManualProcessRunner: React.FC = () => {
   const [selectedProcess, setSelectedProcess] = useState('');
@@ -33,27 +33,43 @@ const ManualProcessRunner: React.FC = () => {
     setOutput(`Starting ${selectedProcess}...\n`);
 
     if (selectedProcess === 'Benchmark 1') {
-      // Call the backend API for Benchmark 1
+      // Call the new procurement analysis API for Benchmark 1
       try {
+        setOutput(prev => prev + 'Initiating AI-powered procurement analysis...\n');
+        setOutput(prev => prev + 'Analyzing market index data for June 2025...\n');
+        
         const response = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ part_number: parameters }),
+          body: JSON.stringify({ prompt: "full" }),
         });
+        
         const data = await response.json();
-        if (response.ok && data.status === "found") {
-          setOutput(
-            prev =>
-              prev +
-              "Part found!\n" +
-              JSON.stringify(data.data, null, 2) +
-              "\nProcess completed."
-          );
+        
+        if (response.ok) {
+          setOutput(prev => prev + 'Analysis complete!\n\n');
+          setOutput(prev => prev + `Summary: ${data.summary}\n\n`);
+          
+          if (data.opportunities && data.opportunities.length > 0) {
+            setOutput(prev => prev + 'Opportunities Found:\n');
+            data.opportunities.forEach((opportunity: any, index: number) => {
+              setOutput(prev => prev + `\n${index + 1}. ${opportunity.type} Opportunity:\n`);
+              setOutput(prev => prev + `   Part Number: ${opportunity.part_number}\n`);
+              setOutput(prev => prev + `   Current Supplier: ${opportunity.current_supplier}\n`);
+              setOutput(prev => prev + `   Price & Trend: ${opportunity.current_price_and_trend}\n`);
+              setOutput(prev => prev + `   Description: ${opportunity.description}\n`);
+            });
+          } else {
+            setOutput(prev => prev + 'No cost-saving opportunities found in the current analysis.\n');
+          }
+          
+          setOutput(prev => prev + `\nAnalysis completed at: ${data.analysis_timestamp}\n`);
+          setOutput(prev => prev + 'Process completed successfully.');
         } else {
-          setOutput(prev => prev + "Part not found.\nProcess completed.");
+          setOutput(prev => prev + `Error: ${data.detail || 'Analysis failed'}\nProcess completed.`);
         }
       } catch (err: any) {
-        setOutput(prev => prev + "Error: " + err.message + "\nProcess completed.");
+        setOutput(prev => prev + `Error: ${err.message}\nProcess completed.`);
       }
       setIsRunning(false);
     } else {
@@ -111,7 +127,7 @@ const ManualProcessRunner: React.FC = () => {
             id="parameters"
             placeholder={
               selectedProcess === "Benchmark 1"
-                ? "Enter part number..."
+                ? "Enter 'full' to run complete procurement analysis..."
                 : "Enter parameters or prompts for the process..."
             }
             value={parameters}
@@ -145,7 +161,7 @@ const ManualProcessRunner: React.FC = () => {
             placeholder="Process output will appear here..."
             value={output}
             readOnly
-            rows={8}
+            rows={12}
             className="font-mono text-sm"
           />
         </div>
