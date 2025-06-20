@@ -38,11 +38,15 @@ const ManualProcessRunner: React.FC = () => {
         setOutput(prev => prev + 'Initiating AI-powered procurement analysis...\n');
         setOutput(prev => prev + 'Analyzing market index data for June 2025...\n');
         
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: "full" }),
-        });
+// ... inside the handleExecute function
+const response = await fetch('https://akaiconsola1-backend.onrender.com/api/procurement-analysis', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ analysis_type: 'full' }),
+});
+// ...
         
         const data = await response.json();
         

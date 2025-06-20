@@ -1,7 +1,10 @@
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import { BrowserRouter } from 'react-router-dom';
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-
-// Remove dark mode class addition
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <BrowserRouter basename="/akaiconsola1">
+    <App />
+  </BrowserRouter>
+);
