@@ -4,7 +4,7 @@ import './index.css';
 import { BrowserRouter } from 'react-router-dom';
 
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter basename="/akaiconsola1">
+  <BrowserRouter>
     <App />
   </BrowserRouter>
 );
