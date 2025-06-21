@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  base: '/akaiconsola1/',
+  base: mode === 'development' ? "/akaiconsola1-dev/" : "/akaiconsola1/",
   plugins: [
     react()
   ].filter(Boolean),
