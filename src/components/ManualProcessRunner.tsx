@@ -18,7 +18,7 @@ const processes = [
   'Contracts 1'
 ];
 
-const API_URL = "https://akaiconsola1-backend.onrender.com/api/procurement-analysis";
+const API_URL = import.meta.env.VITE_API_URL || "https://akaiconsola1-backend.onrender.com";
 
 const ManualProcessRunner: React.FC = () => {
   const [selectedProcess, setSelectedProcess] = useState('');
@@ -38,15 +38,13 @@ const ManualProcessRunner: React.FC = () => {
         setOutput(prev => prev + 'Initiating AI-powered procurement analysis...\n');
         setOutput(prev => prev + 'Analyzing market index data for June 2025...\n');
         
-// ... inside the handleExecute function
-const response = await fetch('https://akaiconsola1-backend.onrender.com/api/procurement-analysis', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ analysis_type: 'full' }),
-});
-// ...
+        const response = await fetch(`${API_URL}/api/procurement-analysis`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ analysis_type: 'full' }),
+        });
         
         const data = await response.json();
         
@@ -74,6 +72,52 @@ const response = await fetch('https://akaiconsola1-backend.onrender.com/api/proc
         }
       } catch (err: any) {
         setOutput(prev => prev + `Error: ${err.message}\nProcess completed.`);
+      }
+      setIsRunning(false);
+    } else if (selectedProcess === 'Benchmark 2') {
+      try {
+        setOutput(prev => prev + 'Connecting to local AI Agent for Benchmark 2...\n');
+        
+        const response = await fetch(`http://127.0.0.1:8000/run-benchmark`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.status === 'success') {
+          setOutput(prev => prev + data.message + '\n\n');
+          setOutput(prev => prev + '--- Benchmark Results ---\n');
+          
+          if (data.data && data.data.length > 0) {
+            data.data.forEach((item: any, index: number) => {
+              setOutput(prev => prev + `\n${index + 1}. Part Name: ${item.partname}\n`);
+              setOutput(prev => prev + `   Material: ${item.material}\n`);
+              setOutput(prev => prev + `   Current Supplier: ${item.current_supplier}\n`);
+              
+              if (item.alternative_suppliers && item.alternative_suppliers.length > 0) {
+                setOutput(prev => prev + `   Alternative Suppliers Found:\n`);
+                item.alternative_suppliers.forEach((supplier: any, sIndex: number) => {
+                  setOutput(prev => prev + `    ${sIndex + 1}. ${supplier.name} - ${supplier.url}\n`);
+                });
+              } else {
+                setOutput(prev => prev + '   No alternative suppliers found.\n');
+              }
+            });
+          } else {
+            setOutput(prev => prev + 'No specific data items returned from the process.\n');
+          }
+          
+          setOutput(prev => prev + '\nProcess completed successfully.');
+
+        } else {
+          setOutput(prev => prev + `Error: ${data.message || 'Benchmark 2 process failed.'}\nProcess completed.`);
+        }
+      } catch (err: any) {
+        setOutput(prev => prev + `Connection Error: Could not connect to the local AI Agent.\nPlease ensure it's running at http://127.0.0.1:8000.\n\n`);
+        setOutput(prev => prev + `Details: ${err.message}\nProcess failed.`);
       }
       setIsRunning(false);
     } else {
